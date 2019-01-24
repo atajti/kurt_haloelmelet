@@ -4,7 +4,7 @@ author: "Tajti András"
 date: "Budapest 2019. 01. 25."
 output:
     html_document:
-      code_folding: show
+      code_folding: hide
       keep_md: yes
       self_contained: no
       toc: yes
@@ -15,6 +15,8 @@ editor_options:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+suppressMessages(suppressWarnings(library(igraph)))
+suppressMessages(suppressWarnings(library(igraphdata)))
 ```
 
 
@@ -40,16 +42,43 @@ együtt szereplés egy szövegben) olyan plusz információt hordoznak, ami
 miatt bővíteni kell a táblázatainkat egy másikkal, ami ezeket a 
 kapcsolatokat tartalmazza.
 
+## Eszközök
+
+Mivel az eddig megismert eszközökkel nem, vagy csak nagyon körülményesen
+tudnánk elemezni a kapcsoaltokat, felmerül a kérdés, milyen szoftverek
+vannak felkészítve ilyen problémákra?
+
+### Általánosabb célú eszközök
+
+Az `R` és a `python` irendelkezik hálózatelemző csomagokkal (`igraph`,
+`networkX` csak egy-egy példa), ezek többnyire a gép memóriájában tárolják
+az összes releváns információt. Ma az `R` `igraph` csomagjával ismerkedhet meg, aki megnézi a kódokat.
+
+### Gráfelemző szoftverek
+
+Hálózatelemzésre specializálódott grafikus programok is léteznek és 
+népszerűek. A `Cytoscape` inkább algoritmusokban gazdag, míg a `Gephy`
+a gáfok ábrázolását emelte új szintre. Ezek ingyenesen használható
+eszközök, ezért több más termék is épít rájuk.
+
+### Gáfalapú adtbázisok
+
+A gráfokat érdemes úgy tárolni, hogy azok könny és gyorsan lekérdezhetőek
+legyenek akár egy SQL(-szerű) utasítással. A legszélesebb körben ismert
+ilyen eszköz a Neo4j, de nagyvállalatok számára haz SAP és az Oracle is
+kínál megoldásokat, míg a Microsoft az SQL Serverbe rakta bele ezt a 
+megoldását.
 
 
-Euler 1736-ban a Königsbergi hidak problémáját elemezte így; arra a
-kérdésre kereste a választ, hogy be lehet-e járni a várost úgy, hogy
-minden hídján egyszer megyünk át?
+
+
+
+Ez a módszertan nem új találmány: Euler 1736-ban a Königsbergi hidak
+problémáját elemezte így; arra a kérdésre kereste a választ, hogy be 
+lehet-e járni a várost úgy, hogy minden hídján egyszer megyünk át?
 ![Königsberg képe](https://raw.githubusercontent.com/atajti/RLadies_Halozatelmelet_tutorial/master/data/Konigsberg_bridges.png "Königsbergi hidak")
 
-```{r "csomagbetöltés és königsbergi hidak", echo=, message=FALSE, warning=FALSE, paged.print=FALSE}
-suppressMessages(suppressWarnings(library(igraph)))
-suppressMessages(suppressWarnings(library(igraphdata)))
+```{r "csomagbetöltés és königsbergi hidak", echo=, message=FALSE, warning=FALSE, paged.print=FALSE, fig.cap="Königsberg látképe az 1700-as években, a hidak zölddel kiemelve."}
 data(Koenigsberg)
 plot(Koenigsberg,
      main="Königsbergi hidak",
