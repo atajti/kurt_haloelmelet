@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Tajti András" />
+
+
+<title>Bevezetés a hálózatelméletbe</title>
+
+<script src="halolmelet_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="halolmelet_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="halolmelet_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="halolmelet_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="halolmelet_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="halolmelet_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="halolmelet_files/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="halolmelet_files/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="halolmelet_files/navigation-1.1/tabsets.js"></script>
+<script src="halolmelet_files/navigation-1.1/codefolding.js"></script>
+<link href="halolmelet_files/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="halolmelet_files/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("show" === "show");
+});
+</script>
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">Bevezetés a hálózatelméletbe</h1>
+<h4 class="author"><em>Tajti András</em></h4>
+<h4 class="date"><em>Budapest 2019. 01. 25.</em></h4>
+
+</div>
+
+
+<div id="miert-jok-a-grafok" class="section level2">
+<h2>Miért jók a gráfok?</h2>
+<p>A “hagyományos” módszerekkel ellentétben kapcsolatok összességét lehet velük vizsgálni. Euler 1736-ban a Königsbergi hidak problémáját elemezte így; arra a kérdésre kereste a választ, hogy be lehet-e járni a várost úgy, hogy minden hídján egyszer megyünk át? <img src="https://raw.githubusercontent.com/atajti/RLadies_Halozatelmelet_tutorial/master/data/Konigsberg_bridges.png" title="Königsbergi hidak" alt="Königsberg képe" /></p>
+<p><img src="halolmelet_files/figure-html/csomagbetöltés%20és%20königsbergi%20hidak-1.png" /><!-- --></p>
+<p>A gráfokat nem csak ábrázolva tudjuk vizsgálni, sok tulajdonságról a <code>summary</code> azonnal ad információt:</p>
+<pre class="r"><code>summary(Koenigsberg)</code></pre>
+<pre><code>## IGRAPH 227bd5e UN-- 4 7 -- The seven bidges of Koenigsberg
+## + attr: name (g/c), name (v/c), Euler_letter (v/c), Euler_letter
+## | (e/c), name (e/c)</code></pre>
+</div>
+<div id="grafok-keszitese" class="section level2">
+<h2>Gráfok készítése</h2>
+<p>Egy gráfot létre tudunk hozni az élek és csúcsok hozzáadásával, de akár részgráfokkal is bővíthetjük:</p>
+<pre class="r"><code>graf_darabonkent &lt;- graph_from_literal()
+cat(&quot;Üres gráf összefoglaló adatai&quot;)</code></pre>
+<pre><code>## Üres gráf összefoglaló adatai</code></pre>
+<pre class="r"><code>summary(graf_darabonkent)</code></pre>
+<pre><code>## IGRAPH fdf28fa U--- 0 0 --</code></pre>
+<pre class="r"><code>graf_darabonkent &lt;- graf_darabonkent + vertex(&quot;Első csúcs&quot;)
+cat(&quot;Egy csúcsú gráf összefoglaló adatai&quot;)</code></pre>
+<pre><code>## Egy csúcsú gráf összefoglaló adatai</code></pre>
+<pre class="r"><code>summary(graf_darabonkent)</code></pre>
+<pre><code>## IGRAPH fdf639d UN-- 1 0 -- 
+## + attr: name (v/c)</code></pre>
+<pre class="r"><code>graf_darabonkent &lt;- graf_darabonkent + vertex(&quot;Második csúcs&quot;) + edge(1, 2)
+cat(&quot;Több csúcsú gráf összefoglaló adatai&quot;)</code></pre>
+<pre><code>## Több csúcsú gráf összefoglaló adatai</code></pre>
+<pre class="r"><code>summary(graf_darabonkent)</code></pre>
+<pre><code>## IGRAPH fdfa817 UN-- 2 1 -- 
+## + attr: name (v/c)</code></pre>
+<p>Ez macerás, szerencsére gyakori alakzatokat könnyű generálni:</p>
+<pre class="r"><code>teljes_halozat &lt;- graph_from_literal(A:B:C:D - A:B:C:D)
+fa &lt;- make_tree(5)
+kor &lt;- make_ring(5)
+csillag &lt;- make_star(5, mode=&quot;undirected&quot;)
+becsillag &lt;- make_star(5, mode=&quot;in&quot;)
+kicsillag &lt;- make_star(5, mode=&quot;out&quot;)
+plot(teljes_halozat, main=&quot;Teljes gráf&quot;)</code></pre>
+<p><img src="halolmelet_files/figure-html/gyakori%20alakzatok-1.png" /><!-- --></p>
+<pre class="r"><code>plot(fa, main=&quot;Fa&quot;)</code></pre>
+<p><img src="halolmelet_files/figure-html/gyakori%20alakzatok-2.png" /><!-- --></p>
+<pre class="r"><code>plot(kor, main=&quot;Körgráf&quot;)</code></pre>
+<p><img src="halolmelet_files/figure-html/gyakori%20alakzatok-3.png" /><!-- --></p>
+<pre class="r"><code>plot(csillag, main=&quot;Csillag gráf&quot;)</code></pre>
+<p><img src="halolmelet_files/figure-html/gyakori%20alakzatok-4.png" /><!-- --></p>
+<pre class="r"><code>plot(kicsillag, main=&quot;Csillag gráf kifelé irányított élekkel&quot;)</code></pre>
+<p><img src="halolmelet_files/figure-html/gyakori%20alakzatok-5.png" /><!-- --></p>
+<pre class="r"><code>plot(becsillag, main=&quot;Csillag gráf befelé irányított élekkel&quot;)</code></pre>
+<p><img src="halolmelet_files/figure-html/gyakori%20alakzatok-6.png" /><!-- --></p>
+<p>Természetesen az elemzendő hálózatokat nem érdemes így betölteni; az <code>igraph</code> sok adattípus értelmezésére fel van készítve - ezek közül a leghasznosabb az éllisták gráffá alakítása:</p>
+<pre class="r"><code>BP_metro &lt;- data.frame(forras = c(&quot;Vörösmarty tér&quot;, &quot;Deák Ferenc tér&quot;, &quot;Bajcsy-Zsilinszky út&quot;, &quot;Opera&quot;, &quot;Oktogon&quot;, &quot;Vörösmarty utca&quot;, &quot;Kodály körönd&quot;, &quot;Bajza utca&quot;, &quot;Hősök tere&quot;, &quot;Széchenyi fürdő&quot;,
+                                  &quot;Déli pályaudvar&quot;, &quot;Széll Kálmán tér&quot;, &quot;Batthyány tér&quot;, &quot;Kossuth Lajos tér&quot;, &quot;Deák Ferenc tér&quot;, &quot;Astoria&quot;, &quot;Blaha Lujza tér&quot;, &quot;Keleti pályaudvar&quot;, &quot;Puskás Ferenc Stadion&quot;, &quot;Pillangó utca&quot;,
+                                  &quot;Újpest-Központ&quot;, &quot;Újpest-Városkapu&quot;, &quot;Gyöngyösi utca&quot;, &quot;Forgách utca&quot;, &quot;Árpád híd&quot;, &quot;Dózsa György út&quot;, &quot;Lehet tér&quot;, &quot;Nyugati pályaudvar&quot;, &quot;Arany János utca&quot;, &quot;Deák Ferenc tér&quot;, &quot;Ferenciek tere&quot;, &quot;Kálvin tér&quot;, &quot;Corvin negyed&quot;, &quot;Klinikák&quot;, &quot;Nagyvárad tér&quot;, &quot;Népliget&quot;, &quot;Ecseri út&quot;, &quot;Pöttyös utca&quot;, &quot;Határ út&quot;,
+                                  &quot;Kelenföld vasútállomás&quot;, &quot;Bikás park&quot;, &quot;Újbuda-központ&quot;, &quot;Móricz Zsigmond körtér&quot;, &quot;Szent Gellért tér&quot;, &quot;Fővám tér&quot;, &quot;Kálvin tér&quot;, &quot;Rákóczi tér&quot;, &quot;II. János Pál pápa tér&quot;),
+                       cel = c(&quot;Deák Ferenc tér&quot;, &quot;Bajcsy-Zsilinszky út&quot;, &quot;Opera&quot;, &quot;Oktogon&quot;, &quot;Vörösmarty utca&quot;, &quot;Kodály körönd&quot;, &quot;Bajza utca&quot;, &quot;Hősök tere&quot;, &quot;Széchenyi fürdő&quot;, &quot;Mexikói út vá.&quot;, 
+                               &quot;Széll Kálmán tér&quot;, &quot;Batthyány tér&quot;, &quot;Kossuth Lajos tér&quot;, &quot;Deák Ferenc tér&quot;, &quot;Astoria&quot;, &quot;Blaha Lujza tér&quot;, &quot;Keleti pályaudvar&quot;, &quot;Puskás Ferenc Stadion&quot;, &quot;Pillangó utca&quot;, &quot;Örs vezér tere&quot;,
+                                 &quot;Újpest-Városkapu&quot;, &quot;Gyöngyösi utca&quot;, &quot;Forgách utca&quot;, &quot;Árpád híd&quot;, &quot;Dózsa György út&quot;, &quot;Lehet tér&quot;, &quot;Nyugati pályaudvar&quot;, &quot;Arany János utca&quot;, &quot;Deák Ferenc tér&quot;, &quot;Ferenciek tere&quot;, &quot;Kálvin tér&quot;, &quot;Corvin negyed&quot;, &quot;Klinikák&quot;, &quot;Nagyvárad tér&quot;, &quot;Népliget&quot;, &quot;Ecseri út&quot;, &quot;Pöttyös utca&quot;, &quot;Határ út&quot;, &quot;Kőbánya-Kispest&quot;,
+                               &quot;Bikás park&quot;, &quot;Újbuda-központ&quot;, &quot;Móricz Zsigmond körtér&quot;, &quot;Szent Gellért tér&quot;, &quot;Fővám tér&quot;, &quot;Kálvin tér&quot;, &quot;Rákóczi tér&quot;, &quot;II. János Pál pápa tér&quot;, &quot;Keleti pályaudvar&quot;),
+                       vonal = c(rep(&quot;M1&quot;, 10),
+                                 rep(&quot;M2&quot;, 10),
+                                 rep(&quot;M3&quot;, 19),
+                                 rep(&quot;M4&quot;, 9)))
+BP_metro_graf &lt;- graph_from_data_frame(BP_metro, directed=FALSE)
+plot(BP_metro_graf,
+     main=&quot;Budapest metróhálózata gráfként&quot;,
+     vertex.size=.2,
+     vertex.label.cex=.7,
+     edge.color=c(&quot;yellow&quot;, &quot;red&quot;, &quot;blue&quot;, &quot;green&quot;)[as.factor(E(BP_metro_graf)$vonal)])</code></pre>
+<p><img src="halolmelet_files/figure-html/éllisták-1.png" /><!-- --></p>
+</div>
+<div id="a-halozatok-strukturaja" class="section level2">
+<h2>A hálózatok struktúrája</h2>
+<p>A csúcsok és élek száma, de még az irányítottságuk sem árul el sokat a gráf struktúrájáról.</p>
+<div id="fokszam-eloszlas" class="section level3">
+<h3>Fokszám-eloszlás</h3>
+<p>Sokat segít a csúcsok fokszámának eloszlása abban, hogy képet alkothassunk egy nagy hálózatról:</p>
+<pre class="r"><code>plot(degree.distribution(teljes_halozat)[-1],
+     main=&quot;Teljes gráf fokszám-eloszlása&quot;,
+     ylab=&quot;Adott fokszám előfordulási aránya&quot;,
+     xlab=&quot;Fokszám&quot;)</code></pre>
+<p><img src="halolmelet_files/figure-html/fokszámeloszlás-1.png" /><!-- --></p>
+<pre class="r"><code>plot(degree.distribution(kor)[-1],
+     main=&quot;Körgráf fokszám-eloszlása&quot;,
+     ylab=&quot;Adott fokszám előfordulási aránya&quot;,
+     xlab=&quot;Fokszám&quot;)</code></pre>
+<p><img src="halolmelet_files/figure-html/fokszámeloszlás-2.png" /><!-- --></p>
+<pre class="r"><code>plot(degree.distribution(csillag)[-1],
+     main=&quot;Csillag gráf fokszám-eloszlása&quot;,
+     ylab=&quot;Adott fokszám előfordulási aránya&quot;,
+     xlab=&quot;Fokszám&quot;)</code></pre>
+<p><img src="halolmelet_files/figure-html/fokszámeloszlás-3.png" /><!-- --></p>
+<pre class="r"><code>plot(degree.distribution(fa)[-1],
+     main=&quot;Fa fokszám-eloszlása&quot;,
+     ylab=&quot;Adott fokszám előfordulási aránya&quot;,
+     xlab=&quot;Fokszám&quot;)</code></pre>
+<p><img src="halolmelet_files/figure-html/fokszámeloszlás-4.png" /><!-- --></p>
+<pre class="r"><code>plot(degree.distribution(BP_metro_graf)[-1],
+     main=&quot;BP metróhálózatának fokszám-eloszlása&quot;,
+     ylab=&quot;Adott fokszám előfordulási aránya&quot;,
+     xlab=&quot;Fokszám&quot;)</code></pre>
+<p><img src="halolmelet_files/figure-html/fokszámeloszlás-5.png" /><!-- --></p>
+</div>
+<div id="atmero" class="section level3">
+<h3>Átmérő</h3>
+<p>Az átmérő a gráfon megtalálható leghosszabb legrövidebb út. Mivel az út függ attól, hogy a hálózat irányított vagy irányítatlan, az átmérő hossza is függ ettől:</p>
+<ul>
+<li>A létrehozott fa gráf átmérője 2,</li>
+<li>az irányítatlan körgráfé pedig 2.</li>
+<li>Az irányítatlan csillag gráfnak 2,</li>
+<li>míg az irányítottnak csak 1.</li>
+</ul>
+</div>
+<div id="centralitas" class="section level3">
+<h3>Centralitás</h3>
+<p>Érdemes megvizsgálni, melyek a fontos csúcsok egy hálózatban, erre sok lehetőség van:</p>
+<ol style="list-style-type: decimal">
+<li><p>Annál fontosabbnak tekintünk egy csúcsot, minél több kapcsolattal rendelkezik,</p></li>
+<li><p>minél több csúcsot köt össze,</p></li>
+<li><p>minél fontosabb csúcsokhoz csatlakozik,</p></li>
+<li><p>minél nagyobb eséllyel kerül elő véletlenszerűen.</p></li>
+</ol>
+<pre class="r"><code>fokszam_centralitas &lt;- centr_degree(BP_metro_graf)
+plot(BP_metro_graf,
+     main=&quot;Budapest metróhálózata fokszám szerinti fontosság alapján&quot;,
+     vertex.size=fokszam_centralitas$res,
+     vertex.label=NA)</code></pre>
+<p><img src="halolmelet_files/figure-html/fokszám-centralitás-1.png" /><!-- --></p>
+<pre class="r"><code>tolmacs_problema &lt;- make_star(5, mode=&quot;undirected&quot;) + make_star(5, mode=&quot;undirected&quot;) + edge(2, 10)
+plot(tolmacs_problema,
+     main=&quot;Tolmács probléma fokszám szerinti fontosság alapján&quot;,
+     vertex.size=centr_degree(tolmacs_problema)$res,
+     vertex.label=NA)</code></pre>
+<p><img src="halolmelet_files/figure-html/fokszám-centralitás-2.png" /><!-- --></p>
+<p>A tolmács-probléma azt a helyzetet írja le, mikor az információ egy adott emberen keresztül áramlik két csoport közt, így ő tudja szűrni, alakítani annak tartalmát. Erre a köztesség, vagy betweenness-centralitás a megfelelő mérőszám:</p>
+<pre class="r"><code>koztesseg &lt;- centr_betw(tolmacs_problema)
+plot(tolmacs_problema,
+     main=&quot;Tolmács probléma köztesség szerinti fontosság alapján&quot;,
+     vertex.size=koztesseg$res,
+     vertex.label=NA)</code></pre>
+<p><img src="halolmelet_files/figure-html/betweenness-1.png" /><!-- --></p>
+<p>Azonban ez sem mindn esetben ideális, erre az Elnök feleségének példája hozható: az ő esetében sem a kapcsolatok száma, sem a csak rajta átáramló információ mennyisége nem kiugró a környezetéhez képest, azonban az egyik legfontosabb döntéshozóra van jelentős hatása. Tehát minden egyes személy fontossága a hálózatban függ attól, milyen fontos személyekhez kapcsolódik - ezt a sajátérték-centralitás mutatja meg:</p>
+<pre class="r"><code>elnok_felesege &lt;- make_star(4, mode=&quot;undirected&quot;) +
+                  vertex(5:10) + path(3,5,6) + path(4,7,8,9,10)
+                        
+sajatertek_centralitas &lt;- centr_eigen(elnok_felesege)
+koztesseg_centralitas &lt;- centr_betw(elnok_felesege)
+plot(elnok_felesege,
+     main=&quot;Elnök felesége probléma - köztesség-centralitás&quot;,
+     vertex.size=koztesseg_centralitas$res/5,
+     vertex.label=NA)</code></pre>
+<p><img src="halolmelet_files/figure-html/sajatertek-centralitas-1.png" /><!-- --></p>
+<pre class="r"><code>plot(elnok_felesege,
+     main=&quot;Elnök felesége probléma - sajátérték-centralitás&quot;,
+     vertex.size=sajatertek_centralitas$vector*10,
+     vertex.label=NA)</code></pre>
+<p><img src="halolmelet_files/figure-html/sajatertek-centralitas-2.png" /><!-- --></p>
+<p>Döntési folyamatokat ezzel a módszerrel jól lehet elemezni, azonban ha azt szeretnénk tudni, hogy egy kérdésre a hálózatban ki tudja a legnagyobb eséllyel a választ, a PageRank algoritmus ad választ:</p>
+<pre class="r"><code>elnok_felesege_pg &lt;- page_rank(elnok_felesege)
+plot(elnok_felesege,
+     main=&quot;Elnök felesége probléma - PageRank score&quot;,
+     vertex.size=elnok_felesege_pg$vector*100,
+     vertex.label=NA)</code></pre>
+<p><img src="halolmelet_files/figure-html/pagerank-1.png" /><!-- --></p>
+</div>
+<div id="kozossegek" class="section level3">
+<h3>Közösségek</h3>
+<p>A cél olyan csoportokat keresni egy összefüggő hálózaton, amely csoportokon belül sűrűbbek a kapcsolatok, mint azok között.</p>
+<pre class="r"><code>data(karate)
+summary(karate)</code></pre>
+<pre><code>## IGRAPH 4b458a1 UNW- 34 78 -- Zachary&#39;s karate club network
+## + attr: name (g/c), Citation (g/c), Author (g/c), Faction (v/n),
+## | name (v/c), label (v/c), color (v/n), weight (e/n)</code></pre>
+<pre class="r"><code>plot(karate,
+     main=&quot;Karate klub hálózat&quot;)</code></pre>
+<p><img src="halolmelet_files/figure-html/véletlen%20séta-1.png" /><!-- --></p>
+<pre class="r"><code>random_walk_community &lt;- cluster_walktrap(karate, weights=NULL)
+plot(random_walk_community,
+     karate,
+     main=&quot;Véletlen séta alapú közösségek a karate klubban&quot;)</code></pre>
+<p><img src="halolmelet_files/figure-html/véletlen%20séta-2.png" /><!-- --></p>
+<pre class="r"><code>edge_betw_community &lt;- cluster_edge_betweenness(karate, weights=NULL)
+plot(edge_betw_community,
+     karate,
+     main=&quot;Élköztesség alapú közösségek a karate klubban&quot;)</code></pre>
+<p><img src="halolmelet_files/figure-html/véletlen%20séta-3.png" /><!-- --></p>
+<p>A véletlen sétás algoritmus alapötlete, hogy ha a csúcsokat termekként, az éleket termeket összekötő folyosóként képzeljük el, és egy adott teremből véletlenszerűen választunk folyosót amin elindulunk, nagy eséllyel egy sűrű alhálózaton belül fogunk bolyongani. Emiatt a véletlenség miatt az algoritmus eredménye nem ugyanaz minden futtatáskor. Ezzel szemben az élköztességen alapuló közösségkeresés abból indul ki, hogy az az él, aminek magas aköztessége, nagyobb csoportokat köt össze, emiatt valószínűleg csoportközi élről van szó, amit ha elvágunk, elkezd a hálózat csoportokra esni. Ez az algoritmus mindig ugyanazt az eredményt adja.</p>
+</div>
+</div>
+<div id="modellek" class="section level2">
+<h2>Modellek</h2>
+<p>A gráfok kutatásában Erdős Pál és Rényi Alfréd véletlengráf-modellje volt korszakalkotó, mert sok, valós hálózatokban is észrevehető jellegzetességet produkált.</p>
+<pre class="r"><code>er_graf &lt;- sample_gnp(150, .3)
+plot(er_graf,
+     main=&quot;Erdős-Rényi féle véletlen gráf&quot;)</code></pre>
+<p><img src="halolmelet_files/figure-html/erdos-renyi-1.png" /><!-- --></p>
+<pre class="r"><code>plot(degree.distribution(er_graf),
+     main=&quot;Erdős-rényi gráf fokszám-eloszlása&quot;,
+     ylab=&quot;Adott fokszám előfordulási aránya&quot;,
+     xlab=&quot;Fokszám&quot;)</code></pre>
+<p><img src="halolmelet_files/figure-html/erdos-renyi-2.png" /><!-- --></p>
+<p>Minden él <code>p</code> valószínűséggel jön létre, így egy csúcshoz a többi <code>n-1</code> élből várhatóan <code>p * (n-1)</code> fog csatlakozni - ez esetünkben <code>0.3 * 149 = 44.7</code>, míg a létrejött gráfban átlagosan 45. E gráftípusra igaz, hogy a benne lévő csúcsok számához képest az átló igen rövid (esetünkben 2), emiatt sokan és sokat tanulmányozták, illetve egészítették ki és módosítptták, hogy más való életben is tapasztalt jellegzetességet is találjanak.</p>
+<p>Barabási-Albert László és Albert Réka az ezredfordulón publikálták modelljüket, ami a preferenciális csatlakozás elvén működik: egy gráfhoz folyamatosan csatlakoznak új csúcsok, viszont hogy melyik meglévő csúcshoz csatlakoznak, az azok élszámától függ:</p>
+<pre class="r"><code>ba_graf &lt;- sample_pa(150)
+plot(ba_graf,
+     main=&quot;Barabási - Albert féle véletlen gráf&quot;)</code></pre>
+<p><img src="halolmelet_files/figure-html/ba_graf-1.png" /><!-- --></p>
+<pre class="r"><code>plot(degree.distribution(ba_graf),
+     main=&quot;Barabási - Albert gráf fokszám-eloszlása&quot;,
+     ylab=&quot;Adott fokszám előfordulási aránya&quot;,
+     xlab=&quot;Fokszám&quot;)</code></pre>
+<p><img src="halolmelet_files/figure-html/ba_graf-2.png" /><!-- --></p>
+<pre class="r"><code>plot(degree.distribution(ba_graf),
+     main=&quot;Barabási - Albert gráf fokszám-eloszlása logaritmikus skálán&quot;,
+     ylab=&quot;Adott fokszám előfordulási aránya&quot;,
+     xlab=&quot;Fokszám&quot;,
+     log=&quot;xy&quot;)</code></pre>
+<pre><code>## Warning in xy.coords(x, y, xlabel, ylabel, log): 7 y values &lt;= 0 omitted
+## from logarithmic plot</code></pre>
+<p><img src="halolmelet_files/figure-html/ba_graf-3.png" /><!-- --></p>
+<p>Ez a modell is teljesíti a kis világ kritériumot, az átlója 7, azonban a valós hálózatokban sok helyen megfigyelhető skálafüggetlen fokszám-eloszlást is reprodukálja.</p>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
