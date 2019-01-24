@@ -3,7 +3,7 @@ title: "Bevezetés a hálózatelméletbe"
 author: "Tajti András"
 date: "Budapest 2019. 01. 25."
 output:
-    html_document:
+    bookdown::html_document2:
       code_folding: hide
       keep_md: yes
       self_contained: no
@@ -71,14 +71,17 @@ megoldását.
 
 
 
-
+## Hogy működnek a gráfok?
 
 Ez a módszertan nem új találmány: Euler 1736-ban a Königsbergi hidak
 problémáját elemezte így; arra a kérdésre kereste a választ, hogy be 
 lehet-e járni a várost úgy, hogy minden hídján egyszer megyünk át?
 ![Königsberg képe](https://raw.githubusercontent.com/atajti/RLadies_Halozatelmelet_tutorial/master/data/Konigsberg_bridges.png "Königsbergi hidak")
 
-```{r "csomagbetöltés és königsbergi hidak", echo=, message=FALSE, warning=FALSE, paged.print=FALSE, fig.cap="Königsberg látképe az 1700-as években, a hidak zölddel kiemelve."}
+Euler gráfként ábrázolta a várost: a szigeteket illetve a folyó két
+partját egy-egy _csúcs_, a hidakat pedig _élek_ jelölték:
+
+```{r "csomagbetöltés és königsbergi hidak", message=FALSE, warning=FALSE, paged.print=FALSE, fig.cap="Königsberg látképe az 1700-as években, a hidak zölddel kiemelve."}
 data(Koenigsberg)
 plot(Koenigsberg,
      main="Königsbergi hidak",
@@ -86,39 +89,71 @@ plot(Koenigsberg,
      vertex.label=names(V(Koenigsberg)))
 ```
 
-A gráfokat nem csak ábrázolva tudjuk vizsgálni, sok tulajdonságról a `summary` azonnal ad információt:
+
+A gráfokat nem csak ábrázolva tudjuk vizsgálni: az élek száma, csúcsok 
+száma, illetve adott jellemzők (vannak-e nevei a csúcsoknak, van-e 
+súlyozás az éleken, stb.) sok információt árulnak el, amikor először 
+látunk egy gráfot.
 
 ```{r "Königsberg summary"}
 summary(Koenigsberg)
 ```
-## Gráfok készítése
 
-Egy gráfot létre tudunk hozni az élek és csúcsok hozzáadásával, de akár részgráfokkal is bővíthetjük:
 
-```{r gráfkészítés}
+## Gráftípúsok
+
+Az egyszerűbb jellemzés érdekében a gyakori formák és tulajdonságok mind
+külön nevet kaptak az évek során.
+
+### Formák
+
+Természetesen külön neve van az olyan gráfoknak, amiknek se csúcsa,
+se éle nincs - ezek az üres gráfok:
+
+```{r "gráfkészítés - üres"}
 graf_darabonkent <- graph_from_literal()
-cat("Üres gráf összefoglaló adatai")
 summary(graf_darabonkent)
-graf_darabonkent <- graf_darabonkent + vertex("Első csúcs")
-cat("Egy csúcsú gráf összefoglaló adatai")
-summary(graf_darabonkent)
-
-graf_darabonkent <- graf_darabonkent + vertex("Második csúcs") + edge(1, 2)
-cat("Több csúcsú gráf összefoglaló adatai")
-summary(graf_darabonkent)
+# graf_darabonkent <- graf_darabonkent + vertex("Első csúcs")
+# cat("Egy csúcsú gráf összefoglaló adatai")
+# summary(graf_darabonkent)
+# 
+# graf_darabonkent <- graf_darabonkent + vertex("Második csúcs") + edge(1, 2)
+# cat("Több csúcsú gráf összefoglaló adatai")
+# summary(graf_darabonkent)
 
 ```
 
-Ez macerás, szerencsére gyakori alakzatokat könnyű generálni:
+Ha egy gráfban minden lehetséges él létezik a csúcsok közt,
+azt _teljes gráfnak_ hívjuk.
 
-```{r gyakori alakzatok}
+```{r 'teljes gráf', fig.cap='teljes gráf'}
 teljes_halozat <- graph_from_literal(A:B:C:D - A:B:C:D)
+plot(teljes_halozat, main="Teljes gráf")
+summary(teljes_halozat)
+```
+
+Amikor sok ember először találkozik és mindenki mindenkinek bemutatkozik, az egy teljes gráf: minden csúcstól minden csúcshoz megy él, összesen
+$n*(n-1)/2$ kapcsolat alakul ki. A fenti 4 csúcs esetén ez 6 él,ahogy az összefoglalóban is látjuk.
+
+```{r 'fa gráf', fig.cap = 'Egyszerű fa gráf'}
+fa <- make_tree(5)
+plot(fa, main="Fa")
+summary(fa)
+```
+
+A családfa egy tökéletes példája a _fa_ gráfoknak: van egy kiinduló pont
+(kettő), ahonnan van pár _gyerek_, akik _szülei_ a tőlük leágazó gyereknek. Egy gyerek nem kapcsolódhat egyik szülőhöz sem, így nem alakulhat ki _kör_ sem a hálózatban:
+
+```{r 'kör gráf', fig.cap = 'Körgráf'}
+```
+
+```{r "gyakori alakzatok"}
 fa <- make_tree(5)
 kor <- make_ring(5)
 csillag <- make_star(5, mode="undirected")
 becsillag <- make_star(5, mode="in")
 kicsillag <- make_star(5, mode="out")
-plot(teljes_halozat, main="Teljes gráf")
+
 plot(fa, main="Fa")
 plot(kor, main="Körgráf")
 plot(csillag, main="Csillag gráf")
