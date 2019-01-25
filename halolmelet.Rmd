@@ -17,10 +17,12 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 suppressMessages(suppressWarnings(library(igraph)))
 suppressMessages(suppressWarnings(library(igraphdata)))
+suppressMessages(suppressWarnings(library(ggplot2)))
+suppressMessages(suppressWarnings(library(DT)))
 ```
 
 
-## Miért jók a gráfok?
+# Miért jók a gráfok?
 
 Az adatelemzés "hagyományos" eszközei könnyen feldolgozza az egyes
 megfigyelések közti hasonlóságokat, ezért jól lehet őket általános, minden
@@ -42,26 +44,26 @@ együtt szereplés egy szövegben) olyan plusz információt hordoznak, ami
 miatt bővíteni kell a táblázatainkat egy másikkal, ami ezeket a 
 kapcsolatokat tartalmazza.
 
-## Eszközök
+# Eszközök
 
 Mivel az eddig megismert eszközökkel nem, vagy csak nagyon körülményesen
 tudnánk elemezni a kapcsoaltokat, felmerül a kérdés, milyen szoftverek
 vannak felkészítve ilyen problémákra?
 
-### Általánosabb célú eszközök
+## Általánosabb célú eszközök
 
 Az `R` és a `python` irendelkezik hálózatelemző csomagokkal (`igraph`,
 `networkX` csak egy-egy példa), ezek többnyire a gép memóriájában tárolják
 az összes releváns információt. Ma az `R` `igraph` csomagjával ismerkedhet meg, aki megnézi a kódokat.
 
-### Gráfelemző szoftverek
+## Gráfelemző szoftverek
 
 Hálózatelemzésre specializálódott grafikus programok is léteznek és 
 népszerűek. A `Cytoscape` inkább algoritmusokban gazdag, míg a `Gephy`
 a gáfok ábrázolását emelte új szintre. Ezek ingyenesen használható
 eszközök, ezért több más termék is épít rájuk.
 
-### Gáfalapú adtbázisok
+## Gráfalapú adatbázisok
 
 A gráfokat érdemes úgy tárolni, hogy azok könny és gyorsan lekérdezhetőek
 legyenek akár egy SQL(-szerű) utasítással. A legszélesebb körben ismert
@@ -69,19 +71,18 @@ ilyen eszköz a Neo4j, de nagyvállalatok számára haz SAP és az Oracle is
 kínál megoldásokat, míg a Microsoft az SQL Serverbe rakta bele ezt a 
 megoldását.
 
-
-
-## Hogy működnek a gráfok?
+# Hogy működnek a gráfok?
 
 Ez a módszertan nem új találmány: Euler 1736-ban a Königsbergi hidak
 problémáját elemezte így; arra a kérdésre kereste a választ, hogy be 
 lehet-e járni a várost úgy, hogy minden hídján egyszer megyünk át?
+
 ![Königsberg képe](https://raw.githubusercontent.com/atajti/RLadies_Halozatelmelet_tutorial/master/data/Konigsberg_bridges.png "Königsbergi hidak")
 
 Euler gráfként ábrázolta a várost: a szigeteket illetve a folyó két
 partját egy-egy _csúcs_, a hidakat pedig _élek_ jelölték:
 
-```{r "csomagbetöltés és königsbergi hidak", message=FALSE, warning=FALSE, paged.print=FALSE, fig.cap="Königsberg látképe az 1700-as években, a hidak zölddel kiemelve."}
+```{r "koenigsberg-bridges", message=FALSE, warning=FALSE, paged.print=FALSE, fig.cap="Königsberg látképe az 1700-as években, a hidak zölddel kiemelve."}
 data(Koenigsberg)
 plot(Koenigsberg,
      main="Königsbergi hidak",
@@ -100,12 +101,12 @@ summary(Koenigsberg)
 ```
 
 
-## Gráftípúsok
+# Gráftípusok
 
 Az egyszerűbb jellemzés érdekében a gyakori formák és tulajdonságok mind
 külön nevet kaptak az évek során.
 
-### Formák
+## Formák
 
 Természetesen külön neve van az olyan gráfoknak, amiknek se csúcsa,
 se éle nincs - ezek az üres gráfok:
@@ -126,7 +127,7 @@ summary(graf_darabonkent)
 Ha egy gráfban minden lehetséges él létezik a csúcsok közt,
 azt _teljes gráfnak_ hívjuk.
 
-```{r 'teljes gráf', fig.cap='teljes gráf'}
+```{r 'teljes-graf', fig.cap='teljes gráf'}
 teljes_halozat <- graph_from_literal(A:B:C:D - A:B:C:D)
 plot(teljes_halozat, main="Teljes gráf")
 summary(teljes_halozat)
@@ -135,7 +136,7 @@ summary(teljes_halozat)
 Amikor sok ember először találkozik és mindenki mindenkinek bemutatkozik, az egy teljes gráf: minden csúcstól minden csúcshoz megy él, összesen
 $n*(n-1)/2$ kapcsolat alakul ki. A fenti 4 csúcs esetén ez 6 él,ahogy az összefoglalóban is látjuk.
 
-```{r 'fa gráf', fig.cap = 'Egyszerű fa gráf'}
+```{r 'fa-graf', fig.cap = 'Egyszerű fa gráf'}
 fa <- make_tree(5)
 plot(fa, main="Fa")
 summary(fa)
@@ -144,26 +145,59 @@ summary(fa)
 A családfa egy tökéletes példája a _fa_ gráfoknak: van egy kiinduló pont
 (kettő), ahonnan van pár _gyerek_, akik _szülei_ a tőlük leágazó gyereknek. Egy gyerek nem kapcsolódhat egyik szülőhöz sem, így nem alakulhat ki _kör_ sem a hálózatban:
 
-```{r 'kör gráf', fig.cap = 'Körgráf'}
+```{r 'kor-graf', fig.cap = 'Körgráf'}
+kor <- make_ring(5)
+plot(kor, main="Körgráf")
+summary(kor)
 ```
 
-```{r "gyakori alakzatok"}
-fa <- make_tree(5)
-kor <- make_ring(5)
-csillag <- make_star(5, mode="undirected")
-becsillag <- make_star(5, mode="in")
-kicsillag <- make_star(5, mode="out")
+Amikor nem mindenki ismer mindenkit, hanem csak egyvalaki, akkor egy 
+_csillag_ alakzatot kapunk:
 
-plot(fa, main="Fa")
-plot(kor, main="Körgráf")
-plot(csillag, main="Csillag gráf")
+```{r 'csillag-graf', fig.cap = "Csillag, kifelé mutató élekkel"}
+kicsillag <- make_star(5, mode="out")
 plot(kicsillag, main="Csillag gráf kifelé irányított élekkel")
+summary(kicsillag)
+```
+
+Azonban vannak embereket, akiket sokan ismernek olyanok, akiet ő nem,
+az ő ismerettségi hálója befelé mutató élekkel rendelkező csillag lehet:
+
+```{r "becsillag", fig.cap = "Csillag, befelé mutató élekkel"}
+becsillag <- make_star(5, mode="in")
 plot(becsillag, main="Csillag gráf befelé irányított élekkel")
 ```
 
-Természetesen az elemzendő hálózatokat nem érdemes így betölteni; az `igraph` sok adattípus értelmezésére fel van készítve - ezek közül a leghasznosabb az éllisták gráffá alakítása:
+## Irányítottság
 
-```{r éllisták}
+Az élek irányítottsága kulcsfontosságú. Amennyiben egy gráfnak vannak 
+_irányított_ élei, irányítottnak nevezzük az egész gráfot, aminek pedig
+nincs, az _irányítatlan_. Ha csúcstól csúcsig szeretnénk sétálni egy
+irányított gráfon, akkor csak az élek iránynak megfelelően haladhatnánk.
+
+## Összefüggőség
+
+Az eddig látott gráfok mind _összefüggőek_ voltak, nem volt olyan csúcs,
+ami nem csatlakozott volna a többihez. Azonban előfordul, hogy egyes
+csúcsok nem kapcsolódnak a többihez - ilyenkor a gráf nem összefüggő,
+több _komponensből_ áll.Irányított gráfon előfordulhat, hogy habár
+összefüggőnek tűnik a gráf, mégis léteznek egymással kapcsolatban
+nem lévő _erősen összefüggő komponensek_: ha egy ilyen komponensen beől kezdünk el sétálni az élek mentén, nem juthatunk el az ebbe a komponensbe nem tartozó csúcsokhoz.
+
+![Erősen összefüggő komponensek](https://upload.wikimedia.org/wikipedia/commons/5/5c/Scc.png "Erősen összefüggő komponensek")
+
+
+# Gráfok tárolása
+
+A gráfokat tárolni azért nehézkes, mert minden csúcstól mehet él minden 
+csúcshoz, így nagyon nagy táblázatokat kellene böngészni hogy mindenről
+információt kaphassunk. A leggyakoribb megoldás, hogy táblázatban 
+tároljuk _éllistákban_ tároljuk azokat az éleket, amik léteznek a gráfban.
+Ez egy táblázat, ahol egy sor egy él - általában az első oszlop az él
+kiintulópontja, a másik pedig az érkezési pont, míg további oszlopokban
+egyéb tulajdonságokat is fel ehet sorakoztatni.
+
+```{r éllisták, fig.cap = 'Budapest metróhálózata'}
 BP_metro <- data.frame(forras = c("Vörösmarty tér", "Deák Ferenc tér", "Bajcsy-Zsilinszky út", "Opera", "Oktogon", "Vörösmarty utca", "Kodály körönd", "Bajza utca", "Hősök tere", "Széchenyi fürdő",
                                   "Déli pályaudvar", "Széll Kálmán tér", "Batthyány tér", "Kossuth Lajos tér", "Deák Ferenc tér", "Astoria", "Blaha Lujza tér", "Keleti pályaudvar", "Puskás Ferenc Stadion", "Pillangó utca",
                                   "Újpest-Központ", "Újpest-Városkapu", "Gyöngyösi utca", "Forgách utca", "Árpád híd", "Dózsa György út", "Lehet tér", "Nyugati pályaudvar", "Arany János utca", "Deák Ferenc tér", "Ferenciek tere", "Kálvin tér", "Corvin negyed", "Klinikák", "Nagyvárad tér", "Népliget", "Ecseri út", "Pöttyös utca", "Határ út",
@@ -184,44 +218,76 @@ plot(BP_metro_graf,
      edge.color=c("yellow", "red", "blue", "green")[as.factor(E(BP_metro_graf)$vonal)])
 ```
 
-## A hálózatok struktúrája
+A metróhálózat éllistája így néz ki:
+
+```{r "metro-ellista"}
+datatable(BP_metro, rownames = FALSE)
+```
+
+# A hálózatok struktúrája
 
 A csúcsok és élek száma, de még az irányítottságuk sem árul el sokat a gráf struktúrájáról.
 
-### Fokszám-eloszlás
+## Fokszám-eloszlás
 
-Sokat segít a csúcsok fokszámának eloszlása abban, hogy képet alkothassunk egy nagy hálózatról:
+Egy csúcs éleinek számát _fokszámnaak_ hívják. Irányított élek esetén
+ráadásul van _kifok_ és _befok_, előbbi a csúcstól elfelé, míg utóbbi
+a csúcs felé mutat.
 
-```{r fokszámeloszlás}
-plot(degree.distribution(teljes_halozat)[-1],
-     main="Teljes gráf fokszám-eloszlása",
-     ylab="Adott fokszám előfordulási aránya",
-     xlab="Fokszám")
+Az, hogy a csúcsok hányszázaléka rendelkezik adott mennyiségű éllel,
+már jó kapaszkodót ad ahhoz, hogy el tudjuk képzelni a hálózatot.
 
-plot(degree.distribution(kor)[-1],
-     main="Körgráf fokszám-eloszlása",
-     ylab="Adott fokszám előfordulási aránya",
-     xlab="Fokszám")
-
-plot(degree.distribution(csillag)[-1],
-     main="Csillag gráf fokszám-eloszlása",
-     ylab="Adott fokszám előfordulási aránya",
-     xlab="Fokszám")
-
-plot(degree.distribution(fa)[-1],
-     main="Fa fokszám-eloszlása",
-     ylab="Adott fokszám előfordulási aránya",
-     xlab="Fokszám")
-
-plot(degree.distribution(BP_metro_graf)[-1],
-     main="BP metróhálózatának fokszám-eloszlása",
-     ylab="Adott fokszám előfordulási aránya",
-     xlab="Fokszám")
-
-
+```{r teljes-fokszámeloszlás, fig.cap="Teljes gráf fokszám-eloszlása"}
+ggplot(data.frame(arany=degree.distribution(teljes_halozat)[-1],
+                  fokszam=1:max(degree(teljes_halozat))),
+       aes(x=fokszam, y=arany)) +
+  geom_bar(stat="identity") +
+  ggtitle("Teljes gráf fokszám-eloszlása") +
+     ylab("Adott fokszám előfordulási aránya") +
+     xlab("Fokszám")
+```
+```{r fa-fokszam, fig.cap='Fa gráf fokszámeloszlása'}
+ggplot(data.frame(arany=degree.distribution(fa)[-1],
+                  fokszam=1:max(degree(fa))),
+       aes(x=fokszam, y=arany)) +
+  geom_bar(stat="identity") +
+  ggtitle("Fa gráf fokszám-eloszlása") +
+     ylab("Adott fokszám előfordulási aránya") +
+     xlab("Fokszám")
 ```
 
-### Átmérő
+```{r kor-fokszameloszlas, fig.cap = 'Körgráf fokszámeloszlása'}
+ggplot(data.frame(arany=degree.distribution(kor)[-1],
+                  fokszam=1:max(degree(kor))),
+       aes(x=fokszam, y=arany)) +
+  geom_bar(stat="identity") +
+  ggtitle("Körgráf fokszám-eloszlása") +
+     ylab("Adott fokszám előfordulási aránya") +
+     xlab("Fokszám")
+```
+
+```{r csillag-fokszameloszlas, fig.cap = 'Csillag gráf fokszámeloszlása'}
+csillag <- make_star(5)
+ggplot(data.frame(arany=degree.distribution(csillag)[-1],
+                  fokszam=1:max(degree(csillag))),
+       aes(x=fokszam, y=arany)) +
+  geom_bar(stat="identity") +
+  ggtitle("Csillag gráf fokszám-eloszlása") +
+     ylab("Adott fokszám előfordulási aránya") +
+     xlab("Fokszám")
+```
+
+```{r bp-metro-fokszameloszlas, fig.cap = 'Budapest metróhálózatának fokszámeloszlása'}
+ggplot(data.frame(arany=degree.distribution(BP_metro_graf)[-1],
+                  fokszam=1:max(degree(BP_metro_graf))),
+       aes(x=fokszam, y=arany)) +
+  geom_bar(stat="identity") +
+  ggtitle("Budapest metróhálózatának fokszám-eloszlása") +
+     ylab("Adott fokszám előfordulási aránya") +
+     xlab("Fokszám")
+```
+
+## Átmérő
 
 Az átmérő a gráfon megtalálható leghosszabb legrövidebb út. Mivel az út függ attól, hogy a hálózat irányított vagy irányítatlan, az átmérő hossza is függ ettől:
 
@@ -231,7 +297,7 @@ Az átmérő a gráfon megtalálható leghosszabb legrövidebb út. Mivel az út
 * míg az irányítottnak csak `r diameter(kicsillag)`.
 
 
-### Centralitás
+## Centralitás
 
 Érdemes megvizsgálni, melyek a fontos csúcsok egy hálózatban, erre sok lehetőség van:
 
@@ -298,7 +364,7 @@ plot(elnok_felesege,
 
 ```
 
-### Közösségek
+## Közösségek
 
 A cél olyan csoportokat keresni egy összefüggő hálózaton, amely csoportokon belül sűrűbbek a kapcsolatok, mint azok között.
 
@@ -320,18 +386,25 @@ plot(edge_betw_community,
 
 A véletlen sétás algoritmus alapötlete, hogy ha a csúcsokat termekként, az éleket termeket összekötő folyosóként képzeljük el, és egy adott teremből véletlenszerűen választunk folyosót amin elindulunk, nagy eséllyel egy sűrű alhálózaton belül fogunk bolyongani. Emiatt a véletlenség miatt az algoritmus eredménye nem ugyanaz minden futtatáskor. Ezzel szemben az élköztességen alapuló közösségkeresés abból indul ki, hogy az az él, aminek magas aköztessége, nagyobb csoportokat köt össze, emiatt valószínűleg csoportközi élről van szó, amit ha elvágunk, elkezd a hálózat csoportokra esni. Ez az algoritmus mindig ugyanazt az eredményt adja.
 
-## Modellek
+# Modellek
 
 A gráfok kutatásában Erdős Pál és Rényi Alfréd véletlengráf-modellje volt korszakalkotó, mert sok, valós hálózatokban is észrevehető jellegzetességet produkált.
 
-```{r "erdos-renyi"}
+```{r "erdos-renyi", fig.cap = "Erdős-Rényi féle véletlen gráf"}
 er_graf <- sample_gnp(150, .3)
 plot(er_graf,
      main="Erdős-Rényi féle véletlen gráf")
-plot(degree.distribution(er_graf),
-     main="Erdős-rényi gráf fokszám-eloszlása",
-     ylab="Adott fokszám előfordulási aránya",
-     xlab="Fokszám")
+```
+```{r erdos-renyi.eloszlas, fig.cap="Erdős-Rényi féle véletlen gráf fokszámeloszlása", message=FALSE, warning=FALSE}
+
+ggplot(data.frame(eloszlas=degree.distribution(er_graf)[which(degree.distribution(er_graf) > 0)],
+                  fokszam = which(degree.distribution(er_graf) > 0)),
+       aes(x=fokszam, y=eloszlas)) +
+  geom_line() +
+  geom_smooth(se=FALSE) +
+  ggtitle("Erdős-rényi gráf fokszám-eloszlása") +
+     ylab("Adott fokszám előfordulási aránya") +
+     xlab("Fokszám")
 ```
 
 Minden él `p` valószínűséggel jön létre, így egy csúcshoz a többi `n-1` élből várhatóan `p * (n-1)` fog csatlakozni - ez esetünkben `0.3 * 149 = 44.7`, míg a létrejött gráfban átlagosan `r mean(degree(er_graf))`.
@@ -339,19 +412,32 @@ E gráftípusra igaz, hogy a benne lévő csúcsok számához képest az átló 
 
 Barabási-Albert László és Albert Réka az ezredfordulón publikálták modelljüket, ami a preferenciális csatlakozás elvén működik: egy gráfhoz folyamatosan csatlakoznak új csúcsok, viszont hogy melyik meglévő csúcshoz csatlakoznak, az azok élszámától függ:
 
-```{r ba_graf}
+```{r ba_graf, fig.cap = "Barabási-Albert féle véletlen gráf"}
 ba_graf <- sample_pa(150)
 plot(ba_graf,
      main="Barabási - Albert féle véletlen gráf")
-plot(degree.distribution(ba_graf),
-     main="Barabási - Albert gráf fokszám-eloszlása",
-     ylab="Adott fokszám előfordulási aránya",
-     xlab="Fokszám")
-plot(degree.distribution(ba_graf),
-     main="Barabási - Albert gráf fokszám-eloszlása logaritmikus skálán",
-     ylab="Adott fokszám előfordulási aránya",
-     xlab="Fokszám",
-     log="xy")
+```
+```{r ba-eloszlas, fig.cap="Barabási-Albert féle véletlen gráf fokszámeloszlása", message=FALSE, warning=FALSE, paged.print=FALSE}
+
+ggplot(data.frame(eloszlas=degree.distribution(ba_graf)[-1],
+                  fokszam = 1:max(degree(ba_graf))),
+       aes(x=fokszam, y=eloszlas)) +
+  geom_line() +
+  ggtitle("Barabási - Albert gráf fokszám-eloszlása") +
+     ylab("Adott fokszám előfordulási aránya") +
+     xlab("Fokszám")
+```
+```{r ba-eloszlas-loglog, fig.cap="Barabási-Albert féle véletlen gráf fokszámeloszlása", message=FALSE, warning=FALSE, paged.print=FALSE}
+
+ggplot(data.frame(eloszlas=degree.distribution(ba_graf)[-1],
+                  fokszam =1:max(degree(ba_graf))),
+       aes(x=fokszam, y=eloszlas)) +
+  geom_line() +
+  ggtitle("Barabási - Albert gráf fokszám-eloszlása logaritmikus skálán") +
+     ylab("Adott fokszám előfordulási aránya") +
+     xlab("Fokszám") +
+  scale_x_log10() +
+  scale_y_log10()
 ```
 
 Ez a modell is teljesíti a kis világ kritériumot, az átlója `r diameter(ba_graf)`, azonban a valós hálózatokban sok helyen megfigyelhető skálafüggetlen fokszám-eloszlást is reprodukálja. 
